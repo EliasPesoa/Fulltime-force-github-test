@@ -6,6 +6,7 @@ import 'package:github_commit_history_test/src/models/commit_model.dart';
 import 'package:github_commit_history_test/src/services/git_api_service.dart'
     as service;
 import 'package:github_commit_history_test/src/utils/style.dart';
+import 'package:github_commit_history_test/src/view/commit_detailed.dart/commit_detailed.dart';
 import 'package:github_commit_history_test/src/view/commit_history/card_text_widget.dart';
 import 'package:http/http.dart' as http;
 import 'package:github_commit_history_test/src/utils/const.dart';
@@ -27,6 +28,7 @@ class CommitHistoryController extends ChangeNotifier {
     commits.addAll(body.map((e) => e as Map<String, dynamic>));
     for (final item in commits) {
       CommitModel commit = CommitModel.fromJson(item["commit"]);
+      commit.url = item["html_url"];
       commit = formatDate(commit);
       commitList.add(commit);
     }
@@ -49,37 +51,49 @@ class CommitHistoryController extends ChangeNotifier {
       itemCount: commitList.length,
       itemBuilder: (BuildContext context, int index) {
         CommitModel commit = commitList[index];
-        return Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10.0, 5.0, 10.0, 0.0),
-              child: Container(
-                decoration: StyleTheme().cardStyle,
-                child: Padding(
-                  padding: const EdgeInsets.all(15.0),
-                  child: Column(
-                    children: [
-                      CardTextWidget(
-                        label: "Description: ",
-                        text: commit.message,
+        return Material(
+          child: Ink(
+            child: InkWell(
+              onTap: () {
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => CommitDetailed(
+                          commit: commit,
+                        )));
+              },
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(10.0, 5.0, 10.0, 0.0),
+                    child: Container(
+                      decoration: StyleTheme().cardStyle,
+                      child: Padding(
+                        padding: const EdgeInsets.all(15.0),
+                        child: Column(
+                          children: [
+                            CardTextWidget(
+                              label: "Description: ",
+                              text: commit.message,
+                            ),
+                            CardTextWidget(
+                              label: "Date: ",
+                              text: commit.author.date,
+                            ),
+                            CardTextWidget(
+                              label: "Hour: ",
+                              text: commit.author.hour as String,
+                            ),
+                          ],
+                        ),
                       ),
-                      CardTextWidget(
-                        label: "Date: ",
-                        text: commit.author.date,
-                      ),
-                      CardTextWidget(
-                        label: "Hour: ",
-                        text: commit.author.hour as String,
-                      ),
-                    ],
+                    ),
                   ),
-                ),
+                  SizedBox(
+                    height: MediaQuery.sizeOf(context).height * 0.01,
+                  )
+                ],
               ),
             ),
-            SizedBox(
-              height: MediaQuery.sizeOf(context).height * 0.01,
-            )
-          ],
+          ),
         );
       },
     );
